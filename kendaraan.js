@@ -1,0 +1,174 @@
+//iniaili library
+const express = require("express")
+const bodyParser = require("body-parser")
+const cors = require("cors")
+const mysql = require("mysql")
+
+
+// implementasi
+
+const app = express()
+app.use(cors())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+
+// create MySQL Connection
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "sewa_kendaraan"
+})
+
+db.connect(error => {
+    if (error) {
+        console.log(error.message)
+    } else {
+        console.log("MySQL Connected")
+    }
+})
+
+
+
+// end-point akses data siswa
+app.get("/kendaraan", (req, res) => {
+    // create sql query
+    let sql = "select * from data_kendaraan"
+
+    // run query
+    db.query(sql, (error, result) => {
+        let response = null
+        if (error) {
+            response = {
+                message: error.message // pesan error
+            }
+        } else {
+            response = {
+                count: result.length, // jumlah data
+                data_kendaraan: result // isi data
+            }
+        }
+        res.json(response) // send response
+    })
+})
+
+// end-point akses data siswa berdasarkan id_siswa tertentu
+app.get("/kendaraan/:id", (req, res) => {
+    let data = {
+        id_kendaraan: req.params.id
+    }
+    // create sql query
+    let sql = "select * from data_kendaraan where ?"
+
+    // run query
+    db.query(sql, data, (error, result) => {
+        let response = null
+        if (error) {
+            response = {
+                message: error.message // pesan error
+            }
+        } else {
+            response = {
+                count: result.length, // jumlah data
+                data_kendaraan: result // isi data
+            }
+        }
+        res.json(response) // send response
+    })
+})
+
+// end-point menyimpan 
+app.post("/kendaraan", (req, res) => {
+
+    // prepare data
+    let data = {
+        nopol: req.body.nopol,
+        warna: req.body.warna,
+        kondisi_kendaraan : req.body.kondisi_kendaraan
+    }
+
+    // create sql query insert
+    let sql = "insert into data_kendaraan set ?"
+
+    // run query
+    db.query(sql, data, (error, result) => {
+        let response = null
+        if (error) {
+            response = {
+                message: error.message
+            }
+        } else {
+            response = {
+                message: result.affectedRows + " data inserted"
+            }
+        }
+        res.json(response) // send response
+    })
+})
+
+// end-point mengubah data siswa
+app.put("/kendaraan", (req, res) => {
+
+    // prepare data
+    let data = [
+        // data
+        {
+            nopol: req.body.nopol,
+            warna: req.body.warna,
+            kondisi_kendaraan : req.body.kondisi_kendaraan
+        },
+
+        // parameter (primary key)
+        {
+            id_kendaraan: req.body.id_kendaraan
+        }
+    ]
+
+    // create sql query update
+    let sql = "update data_kendaraan set ? where ?"
+
+    // run query
+    db.query(sql, data, (error, result) => {
+        let response = null
+        if (error) {
+            response = {
+                message: error.message
+            }
+        } else {
+            response = {
+                message: result.affectedRows + " data updated"
+            }
+        }
+        res.json(response) // send response
+    })
+})
+
+// end-point menghapus data siswa berdasarkan id_siswa
+app.delete("/kendaraan/:id", (req, res) => {
+    // prepare data
+    let data = {
+        id_kendaraan: req.params.id
+    }
+
+    // create query sql delete
+    let sql = "delete from data_kendaraan where ?"
+
+    // run query
+    db.query(sql, data, (error, result) => {
+        let response = null
+        if (error) {
+            response = {
+                message: error.message
+            }
+        } else {
+            response = {
+                message: result.affectedRows + " data deleted"
+            }
+        }
+        res.json(response) // send response
+    })
+})
+
+app.listen(8000, () => {
+    console.log("Run on port 8000")
+})
